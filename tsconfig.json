@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "target": "ES2017"
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "src/components/RootLayout/index.js",
+    "src/components/Contribute/index.jsx",
+    "src/components/Contact/index.tsx"
+, "src/pages/admin/management/newsletter/index.jsx", "src/components/FAQ/index.jsx", "src/components/FAQ/FaqWithBg.jsx", "src/pages/ContactUs/index.tsx", "src/components/Post/Body.jsx"  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
