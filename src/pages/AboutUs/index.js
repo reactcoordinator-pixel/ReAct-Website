@@ -48,10 +48,16 @@ const AboutUsContent = () => {
   return <AboutUs />;
 };
 
-export default function AboutUsPage() {
+export default function AboutUsPage({ initialContent }) {
   return (
-    <CMSProvider editMode={false}>
+    <CMSProvider editMode={false} initialContent={initialContent}>
       <AboutUsContent />
     </CMSProvider>
   );
+}
+
+export async function getServerSideProps() {
+  const { getCms } = await import("@/lib/data");
+  const initialContent = await getCms("homepage");
+  return { props: { initialContent } };
 }

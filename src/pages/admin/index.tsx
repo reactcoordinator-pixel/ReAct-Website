@@ -5,8 +5,6 @@ import { useRouter } from "next/router";
 import { Card, CardBody, Input, Button, Divider, Chip } from "@heroui/react";
 import RootLayout from "@/components/RootLayout";
 import { User, Lock, Eye, EyeOff, Sparkles } from "lucide-react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/pages/api/FirebaseConfig"; // Adjust path if needed
 
 const SignIn: React.FC = () => {
   const initForm = {
@@ -39,32 +37,22 @@ const SignIn: React.FC = () => {
     setError("");
 
     try {
-      // First: Allow initial hard-coded login (remove this block later when you have real admins)
-      if (
-        formData.username === "reactmalaysia" &&
-        formData.password === "11221122"
-      ) {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password,
+        }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
         localStorage.setItem("isAuthenticated", "true");
-        router.push("/admin/management");
-        return;
-      }
-
-      // Then: Check against Firebase admins collection
-      const querySnapshot = await getDocs(collection(db, "admins"));
-      const admins = querySnapshot.docs.map((doc) => doc.data());
-
-      const match = admins.find(
-        (admin: any) =>
-          admin.username === formData.username &&
-          admin.password === formData.password,
-      );
-
-      if (match) {
-        localStorage.setItem("isAuthenticated", "true");
-        console.log("Authentication successful");
+        localStorage.setItem("admin", JSON.stringify(data.admin));
         router.push("/admin/management");
       } else {
-        setError("Invalid username or password");
+        setError(data.error || "Invalid username or password");
       }
     } catch (err) {
       console.error("Login error:", err);

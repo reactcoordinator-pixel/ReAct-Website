@@ -1,8 +1,6 @@
-// contexts/CMSContext.tsx (Updated to support multiple documents)
+// contexts/CMSContext.tsx — Supabase-backed CMS content (via /api/cms/[id])
 "use client";
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/pages/api/FirebaseConfig"; // Adjust path if needed
 
 interface CMSContextType {
   isEditMode: boolean;
@@ -30,23 +28,31 @@ export const CMSProvider: React.FC<{
   editMode?: boolean;
   collection?: string;
   docId?: string;
+  /** SSR-provided content — when set, renders instantly with no client fetch/skeleton. */
+  initialContent?: any;
 }> = ({
   children,
   editMode = false,
   collection = "cms",
   docId = "homepage",
+  initialContent,
 }) => {
   const [isEditMode, setIsEditMode] = useState(editMode);
-  const [content, setContent] = useState<any>(null);
-  const [originalContent, setOriginalContent] = useState<any>(null);
+  const [content, setContent] = useState<any>(initialContent ?? null);
+  const [originalContent, setOriginalContent] = useState<any>(
+    initialContent ? JSON.parse(JSON.stringify(initialContent)) : null,
+  );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!initialContent);
   const [error, setError] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(!!initialContent);
 
   useEffect(() => {
+    // If content was provided by the server, skip the client fetch entirely.
+    if (initialContent) return;
     loadContent();
-  }, [collection, docId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docId]);
 
   useEffect(() => {
     setIsEditMode(editMode);
@@ -57,16 +63,16 @@ export const CMSProvider: React.FC<{
       setIsLoading(true);
       setError(null);
 
-      const docRef = doc(db, collection, docId);
-      const docSnap = await getDoc(docRef);
+      const res = await fetch(`/api/cms/${docId}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const { data } = await res.json();
 
-      if (docSnap.exists()) {
-        const loadedContent = docSnap.data();
-        setContent(loadedContent);
-        setOriginalContent(JSON.parse(JSON.stringify(loadedContent)));
+      if (data) {
+        setContent(data);
+        setOriginalContent(JSON.parse(JSON.stringify(data)));
         setIsReady(true);
       } else {
-        setError(`No CMS data found for ${collection}/${docId}`);
+        setError(`No CMS data found for ${docId}`);
         setIsReady(false);
       }
     } catch (err) {
@@ -106,8 +112,12 @@ export const CMSProvider: React.FC<{
 
   const saveChanges = async () => {
     try {
-      const docRef = doc(db, collection, docId);
-      await setDoc(docRef, content);
+      const res = await fetch(`/api/cms/${docId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: content }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setOriginalContent(JSON.parse(JSON.stringify(content)));
       setHasUnsavedChanges(false);
     } catch (error) {

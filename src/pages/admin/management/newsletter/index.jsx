@@ -1,14 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { getEmails } from "../../../api/functions/get";
-import {
-  collection,
-  doc,
-  deleteDoc,
-  updateDoc,
-  getFirestore,
-} from "firebase/firestore";
-import { app } from "../../../api/FirebaseConfig";
 import emailjs from "emailjs-com";
 import SectionHeader from "@/components/Common/SectionHeader";
 import {
@@ -33,8 +25,6 @@ import {
 } from "@heroui/react";
 import { Trash2, Edit, Mail, Users } from "lucide-react";
 import RootLayout from "@/components/RootLayout";
-
-const db = getFirestore(app);
 
 export default function AdminPage() {
   const [formData, setFormData] = useState({
@@ -117,7 +107,10 @@ export default function AdminPage() {
 
     setDeletingId(subscriberId);
     try {
-      await deleteDoc(doc(db, "emails", subscriberId));
+      const res = await fetch(`/api/admin/newsletter/${subscriberId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("delete failed");
       setSubscribers(subscribers.filter((sub) => sub.id !== subscriberId));
       alert("Subscriber deleted successfully");
     } catch (error) {
@@ -141,10 +134,12 @@ export default function AdminPage() {
     }
 
     try {
-      const docRef = doc(db, "emails", editingEmail.id);
-      await updateDoc(docRef, {
-        email: newEmail,
+      const res = await fetch(`/api/admin/newsletter/${editingEmail.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newEmail }),
       });
+      if (!res.ok) throw new Error("update failed");
 
       setSubscribers(
         subscribers.map((sub) =>

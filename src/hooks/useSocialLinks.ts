@@ -1,8 +1,6 @@
 // hooks/useSocialLinks.ts
 "use client";
 import { useState, useEffect } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/pages/api/FirebaseConfig";
 
 export interface SocialLink {
   id: string;
@@ -30,11 +28,11 @@ export const useSocialLinks = () => {
   const fetchSocialLinks = async () => {
     try {
       setIsLoading(true);
-      const docRef = doc(db, "cms", "socialLinks");
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        setData(docSnap.data() as SocialLinksData);
+      const res = await fetch("/api/cms/socialLinks");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const { data } = (await res.json()) as { data: SocialLinksData };
+      if (data) {
+        setData(data);
       } else {
         setError("No social links found");
       }
@@ -47,8 +45,12 @@ export const useSocialLinks = () => {
 
   const updateSocialLinks = async (newData: SocialLinksData) => {
     try {
-      const docRef = doc(db, "cms", "socialLinks");
-      await setDoc(docRef, newData);
+      const res = await fetch("/api/cms/socialLinks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: newData }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setData(newData);
       return true;
     } catch (err) {

@@ -19,12 +19,18 @@ const PrivacyWrapper = () => {
   return <PrivacyPolicy />;
 };
 
-export default function PrivacyPage() {
+export default function PrivacyPage({ initialContent }: { initialContent: any }) {
   return (
     <RootLayout>
-      <CMSProvider collection="cms" docId="privacy">
+      <CMSProvider collection="cms" docId="privacy" initialContent={initialContent}>
         <PrivacyWrapper />
       </CMSProvider>
     </RootLayout>
   );
+}
+
+export async function getServerSideProps() {
+  const { getCms } = await import("@/lib/data");
+  const initialContent = await getCms("privacy");
+  return { props: { initialContent } };
 }

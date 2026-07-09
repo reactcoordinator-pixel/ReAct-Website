@@ -169,7 +169,7 @@ export default function NavigationAdmin() {
       const form = new FormData();
       form.append("image", compressed);
       const res = await fetch(
-        "https://www.uploads.reactmalaysia.org/api/upload-image.php",
+        "/api/upload",
         {
           method: "POST",
           body: form,

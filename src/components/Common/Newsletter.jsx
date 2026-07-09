@@ -1,28 +1,30 @@
 import { useState } from "react";
-import firebase from "firebase/app";
-import { app } from "../../pages/api/FirebaseConfig";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { toast } from "react-hot-toast";
 
-export default function YourComponent() {
+export default function Newsletter() {
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-  };
+  const handleEmailChange = (e) => setEmail(e.target.value);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (!email.trim()) return;
+    setLoading(true);
     try {
-      const db = getFirestore(app);
-      const docRef = await addDoc(collection(db, "emails"), {
-        email: email,
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       });
-      console.log("Email saved with ID: ", docRef.id);
-      // Optionally, you can reset the email state after submission
+      if (!res.ok) throw new Error("Subscription failed");
+      toast.success("Subscribed! Thank you.");
       setEmail("");
     } catch (error) {
-      console.error("Error adding email: ", error);
+      toast.error("Something went wrong. Please try again.");
+      console.error("Error adding email:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,8 +41,9 @@ export default function YourComponent() {
 
         <button
           type="submit"
+          disabled={loading}
           aria-label="signup to newsletter"
-          className="absolute right-0 p-4"
+          className="absolute right-0 p-4 disabled:opacity-50"
         >
           <svg
             className="fill-[#f8cf2c] transition ease-in hover:fill-[#000] "

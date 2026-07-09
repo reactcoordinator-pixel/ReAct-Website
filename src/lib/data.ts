@@ -123,3 +123,70 @@ export async function sendContactMessage(msg: {
   }
   return true;
 }
+
+// ---- Admin writes (server-side, service role) -------------------------------
+const toBlogRow = (d: any) => ({
+  title: d.title ?? "",
+  subtitle: d.subtitle ?? "",
+  about: d.about ?? "",
+  category: d.category ?? "",
+  image_url: d.imageUrl ?? null,
+});
+
+const toProjectRow = (d: any) => ({
+  title: d.title ?? "",
+  subtitle: d.subtitle ?? "",
+  description: d.description ?? "",
+  about: d.about ?? "",
+  image_url: d.imageUrl ?? null,
+});
+
+export async function createBlog(data: any) {
+  const { data: row, error } = await supabaseAdmin()
+    .from("blogs")
+    .insert(toBlogRow(data))
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return mapBlog(row);
+}
+
+export async function updateBlog(id: string, data: any) {
+  const { error } = await supabaseAdmin()
+    .from("blogs")
+    .update(toBlogRow(data))
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+export async function deleteBlog(id: string) {
+  const { error } = await supabaseAdmin().from("blogs").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+export async function createProject(data: any) {
+  const { data: row, error } = await supabaseAdmin()
+    .from("projects")
+    .insert(toProjectRow(data))
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return mapProject(row);
+}
+
+export async function updateProject(id: string, data: any) {
+  const { error } = await supabaseAdmin()
+    .from("projects")
+    .update(toProjectRow(data))
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+export async function deleteProject(id: string) {
+  const { error } = await supabaseAdmin().from("projects").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  return true;
+}

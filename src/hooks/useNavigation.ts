@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/pages/api/FirebaseConfig"; // Adjust if your path is different
 
 export interface NavLink {
   label: string;
@@ -51,17 +49,15 @@ export const useNavigation = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetch = async () => {
+    const load = async () => {
       try {
-        const ref = doc(db, "cms", "navigation");
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          const fetched = snap.data() as NavigationData;
-          // Ensure order on nav links
-          fetched.navigationLinks = (fetched.navigationLinks || []).map((l, i) => ({
-            ...l,
-            order: l.order ?? i + 1,
-          })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        const res = await fetch("/api/cms/navigation");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const { data: fetched } = (await res.json()) as { data: NavigationData };
+        if (fetched) {
+          fetched.navigationLinks = (fetched.navigationLinks || [])
+            .map((l, i) => ({ ...l, order: l.order ?? i + 1 }))
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
           setData(fetched);
         } else {
           setData(fallbackData);
@@ -73,12 +69,17 @@ export const useNavigation = () => {
         setIsLoading(false);
       }
     };
-    fetch();
+    load();
   }, []);
 
   const updateNavigation = async (newData: NavigationData) => {
     try {
-      await setDoc(doc(db, "cms", "navigation"), newData);
+      const res = await fetch("/api/cms/navigation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: newData }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setData(newData);
       return true;
     } catch (e) {

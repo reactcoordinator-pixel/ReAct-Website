@@ -18,15 +18,6 @@ import {
 } from "@heroui/react";
 import RootLayout from "@/components/RootLayout";
 import { Eye, EyeOff, UserPlus, Edit, Trash2 } from "lucide-react";
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  deleteDoc,
-  doc,
-  updateDoc,
-} from "firebase/firestore";
-import { db } from "@/pages/api/FirebaseConfig"; // Adjust path if your firebase config file is elsewhere
 
 interface Admin {
   id: string;
@@ -53,17 +44,28 @@ const UsersPage: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, "admins"), (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Admin[];
-      setAdmins(data);
+  const fetchAdmins = async () => {
+    try {
+      const res = await fetch("/api/admin/users");
+      const { users } = await res.json();
+      setAdmins(
+        (users || []).map((u: any) => ({
+          id: u.id,
+          name: u.name,
+          username: u.username,
+          email: u.email,
+          jobRole: u.job_role,
+        })),
+      );
+    } catch (err) {
+      console.error(err);
+    } finally {
       setLoading(false);
-    });
+    }
+  };
 
-    return () => unsub();
+  useEffect(() => {
+    fetchAdmins();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,22 +93,24 @@ const UsersPage: React.FC = () => {
         email: formData.email,
         jobRole: formData.jobRole,
       };
+      if (formData.password) data.password = formData.password;
 
-      if (formData.password) {
-        data.password = formData.password;
-      }
+      const res = editingId
+        ? await fetch(`/api/admin/users/${editingId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          })
+        : await fetch("/api/admin/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+      if (!res.ok) throw new Error("save failed");
 
-      if (editingId) {
-        await updateDoc(doc(db, "admins", editingId), data);
-        setEditingId(null);
-      } else {
-        await addDoc(collection(db, "admins"), {
-          ...data,
-          password: formData.password, // required for new admin
-        });
-      }
-
+      setEditingId(null);
       setFormData(initForm);
+      await fetchAdmins();
     } catch (err) {
       console.error(err);
       alert("Error saving admin");
@@ -137,7 +141,9 @@ const UsersPage: React.FC = () => {
       )
     ) {
       try {
-        await deleteDoc(doc(db, "admins", id));
+        const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("delete failed");
+        await fetchAdmins();
       } catch (err) {
         console.error(err);
         alert("Error deleting admin");

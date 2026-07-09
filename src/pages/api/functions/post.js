@@ -1,38 +1,23 @@
-// "use server";
+// Client-side write helpers — now backed by Supabase via our API routes
+// (formerly direct Firebase Firestore writes).
 
-import {
-  addDoc,
-  collection,
-  doc,
-  getFirestore,
-  deleteDoc,
-  updateDoc as firestoreUpdateDoc,
-} from "firebase/firestore";
-import { app } from "../FirebaseConfig";
+// map the old Firestore collection names to our REST resources
+const RESOURCE = { blogs: "blogs", service: "projects" };
 
-const db = getFirestore(app);
-
-// No longer need Firebase Storage imports
-// import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-// const storage = getStorage(app);
+function resourceFor(collectionName) {
+  const r = RESOURCE[collectionName];
+  if (!r) throw new Error(`Unknown collection: ${collectionName}`);
+  return r;
+}
 
 async function postDoc(data, collectionName) {
   try {
-    const collectionRef = collection(db, collectionName);
-
-    // Create the document with the original data (imageUrl is now the direct URL from your custom domain)
-    const docRef = await addDoc(collectionRef, {
-      ...data,
-      // Ensure imageUrl can be null/undefined if no image
-      imageUrl: data.imageUrl || null,
+    const res = await fetch(`/api/${resourceFor(collectionName)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
-
-    // Add the Firestore document ID to the document itself (common pattern)
-    await firestoreUpdateDoc(docRef, {
-      id: docRef.id,
-    });
-
-    console.log(`Posted Successfully`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return true;
   } catch (error) {
     console.error("Error posting document:", error);
@@ -42,13 +27,12 @@ async function postDoc(data, collectionName) {
 
 async function updateDoc(collectionName, docId, data) {
   try {
-    const docRef = doc(db, collectionName, docId);
-    await firestoreUpdateDoc(docRef, {
-      ...data,
-      // Preserve null if no image
-      imageUrl: data.imageUrl || null,
+    const res = await fetch(`/api/${resourceFor(collectionName)}/${docId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
-    console.log(`Updated Successfully`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return true;
   } catch (error) {
     console.error("Error updating document:", error);
@@ -58,17 +42,15 @@ async function updateDoc(collectionName, docId, data) {
 
 async function deleteDocument(collectionName, docId) {
   try {
-    const docRef = doc(db, collectionName, docId);
-    await deleteDoc(docRef);
-    console.log("Document deleted successfully");
+    const res = await fetch(`/api/${resourceFor(collectionName)}/${docId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return true;
   } catch (error) {
     console.error("Error deleting document:", error);
     return false;
   }
 }
-
-// Removed storeImageInFirestore entirely – we no longer fetch/re-upload images to Firebase Storage
-// The imageUrl coming from the client is now the direct URL from https://www.uploads.reactmalaysia.org
 
 export { updateDoc, postDoc, deleteDocument };

@@ -302,7 +302,7 @@ export const EditableImage: React.FC<EditableImageProps> = ({
       formData.append("image", fileToUpload);
 
       const res = await fetch(
-        "https://www.uploads.reactmalaysia.org/api/upload-image.php",
+        "/api/upload",
         {
           method: "POST",
           body: formData,

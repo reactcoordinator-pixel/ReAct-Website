@@ -122,7 +122,7 @@ export default function DropzoneButton({
 
       setProgress(80);
 
-      const res = await fetch("https://www.uploads.reactmalaysia.org/api/upload-image.php", {
+      const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });

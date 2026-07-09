@@ -7,14 +7,20 @@ import Contact from "@/components/Contact";
 import { Spinner } from "@heroui/react";
 import { useCMS } from "@/contexts/CMSContext";
 
-export default function ContactPage() {
+export default function ContactPage({ initialContent }: { initialContent: any }) {
   return (
     <RootLayout>
-      <CMSProvider collection="cms" docId="contact">
+      <CMSProvider collection="cms" docId="contact" initialContent={initialContent}>
         <ContactWrapper />
       </CMSProvider>
     </RootLayout>
   );
+}
+
+export async function getServerSideProps() {
+  const { getCms } = await import("@/lib/data");
+  const initialContent = await getCms("contact");
+  return { props: { initialContent } };
 }
 
 const ContactWrapper = () => {

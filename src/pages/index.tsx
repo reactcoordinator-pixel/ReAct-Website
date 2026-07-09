@@ -111,12 +111,18 @@ const HomeContent = () => {
   );
 };
 
-export default function Home() {
+export default function Home({ initialContent }: { initialContent: any }) {
   return (
-    <CMSProvider editMode={false}>
+    <CMSProvider editMode={false} initialContent={initialContent}>
       <RootLayout>
         <HomeContent />
       </RootLayout>
     </CMSProvider>
   );
+}
+
+export async function getServerSideProps() {
+  const { getCms } = await import("@/lib/data");
+  const initialContent = await getCms("homepage");
+  return { props: { initialContent } };
 }

@@ -29,7 +29,13 @@ const SingleFeature = ({ feature }: { feature: any }) => {
             src={feature.imageUrl || "/placeholder.jpg"}
             alt={feature.subtitle}
             className="w-full object-cover h-72 rounded-t-lg transition-transform hover:scale-105"
-            onError={(e) => (e.currentTarget.src = "/placeholder.jpg")} // fallback
+            onError={(e) => {
+              // Guard against an infinite loop if the fallback itself 404s
+              const img = e.currentTarget;
+              if (img.dataset.fallback) return;
+              img.dataset.fallback = "1";
+              img.src = "/placeholder.jpg";
+            }}
           />
         </CardBody>
         <CardFooter className="text-center">

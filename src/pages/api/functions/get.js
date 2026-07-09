@@ -1,81 +1,49 @@
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-} from "firebase/firestore";
-import { app } from "../FirebaseConfig";
-const db = getFirestore(app);
+// Client-side data helpers — now backed by Supabase via our API routes
+// (formerly direct Firebase Firestore reads).
+
+async function apiGet(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.error("apiGet failed:", url, e);
+    return null;
+  }
+}
 
 async function getDocById(docId, collectionName) {
-  const docRef = doc(db, collectionName, docId);
-  try {
-    const docSnapshot = await getDoc(docRef);
-    if (!docSnapshot.exists()) {
-      console.log("Doc not found.");
-      return null;
-    }
-    return docSnapshot.data();
-  } catch (error) {
-    console.log("Error fetching Doc:", error);
+  if (collectionName === "service") {
+    const j = await apiGet(`/api/projects/${docId}`);
+    return j?.project || null;
   }
+  if (collectionName === "blogs") {
+    const j = await apiGet(`/api/blogs/${docId}`);
+    return j?.blog || null;
+  }
+  // CMS documents (homepage, navigation, contact, privacy, socialLinks, ...)
+  const j = await apiGet(`/api/cms/${docId}`);
+  return j?.data || null;
 }
 
 async function getBlogs() {
-  try {
-    const q = collection(db, "blogs");
-    const querySnapshot = await getDocs(q);
-    const documents = querySnapshot.docs.map((doc) => doc.data());
-    console.log(documents);
-    return documents;
-  } catch (error) {
-    console.log("Something Went Wrong fetching");
-    return false;
-  }
-}
-
-async function getEmails() {
-  try {
-    const q = collection(db, "emails");
-    const querySnapshot = await getDocs(q);
-
-    const documents = querySnapshot.docs.map((doc) => ({
-      id: doc.id, // ✅ IMPORTANT
-      ...doc.data(),
-    }));
-
-    return documents;
-  } catch (error) {
-    console.log("Something Went Wrong fetching emails", error);
-    return [];
-  }
+  const j = await apiGet("/api/blogs");
+  return j?.blogs || [];
 }
 
 async function getService() {
-  try {
-    const q = collection(db, "service");
-    const querySnapshot = await getDocs(q);
-    const documents = querySnapshot.docs.map((doc) => doc.data());
-    console.log(documents);
-    return documents;
-  } catch (error) {
-    console.log("Something Went Wrong fetching");
-    return false;
-  }
+  const j = await apiGet("/api/projects");
+  return j?.projects || [];
+}
+
+async function getEmails() {
+  const j = await apiGet("/api/admin/newsletter");
+  return j?.emails || [];
 }
 
 async function getInbox() {
-  try {
-    const q = collection(db, "inbox");
-    const querySnapshot = await getDocs(q);
-    const documents = querySnapshot.docs.map((doc) => doc.data());
-    console.log(documents);
-    return documents;
-  } catch (error) {
-    console.log("Something Went Wrong fetching");
-    return false;
-  }
+  const j = await apiGet("/api/admin/contact");
+  return j?.messages || [];
 }
 
 export { getDocById, getEmails, getBlogs, getInbox, getService };
