@@ -2,7 +2,7 @@
 
 import SectionHeader from "../Common/SectionHeader";
 import { SingleCard } from "./SingleCard";
-import { Container, Flex } from "@mantine/core";
+import { Container, Flex } from "@/components/ui";
 import { Spinner } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { getBlogs } from "../../pages/api/functions/get";

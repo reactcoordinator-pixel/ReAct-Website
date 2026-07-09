@@ -3,14 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Spinner,
-  Chip,
-  Divider,
-} from "@heroui/react";
+import { Card, CardBody, Button, Spinner } from "@heroui/react";
 import {
   FileText,
   PlusCircle,
@@ -22,219 +15,185 @@ import {
   Sparkles,
   ArrowRight,
   Users,
+  Newspaper,
+  Share2,
+  Menu as MenuIcon,
+  Shield,
+  LogOut,
+  Inbox,
+  Layers,
 } from "lucide-react";
-import RootLayout from "@/components/RootLayout";
 
-export default function Page() {
+const GROUPS = [
+  {
+    label: "Content Pages",
+    items: [
+      { title: "Home Page", description: "Hero, intro, mission & vision", icon: Home, href: "/admin/management/home" },
+      { title: "About Page", description: "Story, history, team images", icon: Info, href: "/admin/management/about" },
+      { title: "Contact Page", description: "Contact info & form settings", icon: Phone, href: "/admin/management/contact" },
+      { title: "Privacy Policy", description: "Legal & privacy content", icon: Shield, href: "/admin/management/privacy" },
+    ],
+  },
+  {
+    label: "Posts & Projects",
+    items: [
+      { title: "News & Blogs", description: "Manage blog posts", icon: FileText, href: "/admin/management/blogs" },
+      { title: "New Blog", description: "Write & publish a post", icon: PlusCircle, href: "/admin/management/post/newBlog" },
+      { title: "Projects", description: "Manage projects", icon: FolderOpen, href: "/admin/management/services" },
+      { title: "New Project", description: "Add a project", icon: Sparkles, href: "/admin/management/post/newProject" },
+    ],
+  },
+  {
+    label: "Site & People",
+    items: [
+      { title: "Navigation", description: "Header & footer menus", icon: MenuIcon, href: "/admin/management/navigation" },
+      { title: "Social Links", description: "Social media & email", icon: Share2, href: "/admin/management/social" },
+      { title: "Newsletter", description: "Subscribers & broadcasts", icon: Newspaper, href: "/admin/management/newsletter" },
+      { title: "Admins", description: "Manage admin accounts", icon: Users, href: "/admin/management/users" },
+    ],
+  },
+];
+
+const STAT_META = [
+  { key: "blogs", label: "Blogs", icon: FileText, color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30" },
+  { key: "projects", label: "Projects", icon: Layers, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30" },
+  { key: "subscribers", label: "Subscribers", icon: Mail, color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30" },
+  { key: "messages", label: "Messages", icon: Inbox, color: "text-rose-600 bg-rose-100 dark:bg-rose-900/30" },
+  { key: "admins", label: "Admins", icon: Users, color: "text-violet-600 bg-violet-100 dark:bg-violet-900/30" },
+];
+
+export default function Dashboard() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [authed, setAuthed] = useState(false);
+  const [admin, setAdmin] = useState(null);
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-      const isAuthenticated = localStorage.getItem("isAuthenticated");
-      console.log("isAuthenticated:", isAuthenticated);
-      if (!isAuthenticated || isAuthenticated !== "true") {
-        router.replace("/admin");
-      } else {
-        router.replace("/admin/management");
-      }
-    }, 2000);
+    if (localStorage.getItem("isAuthenticated") !== "true") {
+      router.replace("/admin");
+      return;
+    }
+    setAuthed(true);
+    try {
+      setAdmin(JSON.parse(localStorage.getItem("admin") || "null"));
+    } catch {}
+    fetch("/api/admin/stats")
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(() => {});
+  }, [router]);
 
-    return () => clearTimeout(timer);
-  }, []);
+  const logout = () => {
+    localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("admin");
+    router.replace("/admin");
+  };
 
-  const dashboardCards = [
-    {
-      title: "Home Page",
-      description: "Customize homepage content",
-      icon: Home,
-      href: "/admin/management/home",
-      gradient: "from-indigo-500 to-blue-500",
-      iconBg: "bg-indigo-100 dark:bg-indigo-900/30",
-      iconColor: "text-indigo-600 dark:text-indigo-400",
-    },
-    {
-      title: "About Page",
-      description: "Update about page text and images",
-      icon: Info,
-      href: "/admin/management/about",
-      gradient: "from-teal-500 to-cyan-500",
-      iconBg: "bg-teal-100 dark:bg-teal-900/30",
-      iconColor: "text-teal-600 dark:text-teal-400",
-    },
-    {
-      title: "Contact Page",
-      description: "Manage contact information and forms",
-      icon: Phone,
-      href: "/admin/management/contact",
-      gradient: "from-rose-500 to-pink-500",
-      iconBg: "bg-rose-100 dark:bg-rose-900/30",
-      iconColor: "text-rose-600 dark:text-rose-400",
-    },
-    {
-      title: "News & Blogs",
-      description: "Manage and organize your blog posts",
-      icon: FileText,
-      href: "/admin/management/blogs",
-      gradient: "from-blue-500 to-cyan-500",
-      iconBg: "bg-blue-100 dark:bg-blue-900/30",
-      iconColor: "text-blue-600 dark:text-blue-400",
-    },
-    {
-      title: "Publish Blogs",
-      description: "Create and publish new blog content",
-      icon: PlusCircle,
-      href: "/admin/management/post/newBlog",
-      gradient: "from-green-500 to-emerald-500",
-      iconBg: "bg-green-100 dark:bg-green-900/30",
-      iconColor: "text-green-600 dark:text-green-400",
-    },
-    {
-      title: "Projects",
-      description: "Manage your portfolio projects",
-      icon: FolderOpen,
-      href: "/admin/management/services",
-      gradient: "from-amber-500 to-orange-500",
-      iconBg: "bg-amber-100 dark:bg-amber-900/30",
-      iconColor: "text-amber-600 dark:text-amber-400",
-    },
-    {
-      title: "Publish Project",
-      description: "Add new projects to showcase",
-      icon: Sparkles,
-      href: "/admin/management/post/newProject",
-      gradient: "from-purple-500 to-pink-500",
-      iconBg: "bg-purple-100 dark:bg-purple-900/30",
-      iconColor: "text-purple-600 dark:text-purple-400",
-    },
-    // {
-    //   title: "FAQs",
-    //   description: "Update frequently asked questions",
-    //   icon: Info,
-    //   href: "/admin/management/faqs",
-    //   gradient: "from-sky-500 to-blue-500",
-    //   iconBg: "bg-sky-100 dark:bg-sky-900/30",
-    //   iconColor: "text-sky-600 dark:text-sky-400",
-    // },
-    {
-      title: "Social Links",
-      description: "Update social media links",
-      icon: Mail,
-      href: "/admin/management/social",
-      gradient: "from-pink-500 to-fuchsia-500",
-      iconBg: "bg-pink-100 dark:bg-pink-900/30",
-      iconColor: "text-pink-600 dark:text-pink-400",
-    },
-    {
-      title: "Update Navigation",
-      description: "Manage website navigation menu",
-      icon: ArrowRight,
-      href: "/admin/management/navigation",
-      gradient: "from-yellow-500 to-amber-500",
-      iconBg: "bg-yellow-100 dark:bg-yellow-900/30",
-      iconColor: "text-yellow-600 dark:text-yellow-400",
-    },
-    {
-      title: "Privacy Policy",
-      description: "Update privacy policy content",
-      icon: FileText,
-      href: "/admin/management/privacy",
-      gradient: "from-slate-500 to-gray-700",
-      iconBg: "bg-slate-100 dark:bg-slate-900/30",
-      iconColor: "text-slate-600 dark:text-slate-400",
-    },
-    {
-      title: "Newsletter",
-      description: "Send emails to your subscribers",
-      icon: Mail,
-      href: "/admin/management/newsletter",
-      gradient: "from-gray-600 to-gray-800",
-      iconBg: "bg-gray-100 dark:bg-gray-900/30",
-      iconColor: "text-gray-600 dark:text-gray-400",
-    },
-    {
-      title: "Manage Admins", // ← New card
-      description:
-        "Add and manage admin profiles (name, username, email, password, job role)",
-      icon: Users,
-      href: "/admin/management/users",
-      accentColor: "#f8cf2c", // Solid brand color instead of gradient
-      iconBg: "bg-amber-100 dark:bg-amber-900/30",
-      iconColor: "text-amber-600 dark:text-amber-400",
-    },
-  ];
+  if (!authed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Spinner size="lg" color="warning" />
+      </div>
+    );
+  }
 
   return (
-    <RootLayout>
-      {loading ? (
-        <div className="min-h-screen flex flex-col justify-center items-center">
-          <Spinner size="lg" color="warning" className="mb-4" />
-          <p className="text-gray-600 dark:text-gray-400 font-medium">
-            Loading Dashboard...
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-amber-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Top bar */}
+      <header className="sticky top-0 z-20 border-b border-black/5 bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f8cf2c] to-amber-500 flex items-center justify-center shadow">
+              <Sparkles className="w-5 h-5 text-black" />
+            </div>
+            <div className="leading-tight">
+              <p className="font-bold text-gray-800 dark:text-white">ReAct Admin</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Content Management</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/" target="_blank" className="text-sm text-gray-600 dark:text-gray-300 hover:text-black hidden sm:block">
+              View site ↗
+            </Link>
+            <Button
+              size="sm"
+              variant="flat"
+              color="danger"
+              startContent={<LogOut className="w-4 h-4" />}
+              onPress={logout}
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Welcome */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Welcome back{admin?.name ? `, ${admin.name}` : ""} 👋
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Everything on your website is editable from here.
           </p>
         </div>
-      ) : (
-        <div className="min-h-screen mx-2 py-8 px-4">
-          <div className="">
-            {/* Header Section */}
-            <div className="mb-12">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#f8cf2c] to-amber-500 rounded-xl flex items-center justify-center shadow-lg">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-4xl font-bold text-gray-800 dark:text-white">
-                    CMS Dashboard
-                  </h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-1">
-                    Manage your website content with ease
-                  </p>
-                </div>
-              </div>
-            </div>
 
-            {/* Dashboard Cards Grid */}
-            <div className="flex flex-wrap justify-center gap-2">
-              {dashboardCards.map((card, index) => {
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+          {STAT_META.map((s) => {
+            const Icon = s.icon;
+            return (
+              <Card key={s.key} className="border-none shadow-sm bg-white/80 dark:bg-gray-800/80">
+                <CardBody className="flex-row items-center gap-3 p-4">
+                  <div className={`p-2.5 rounded-xl ${s.color}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
+                      {stats ? stats[s.key] ?? 0 : "—"}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{s.label}</p>
+                  </div>
+                </CardBody>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Grouped actions */}
+        {GROUPS.map((group) => (
+          <section key={group.label} className="mb-10">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">
+              {group.label}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {group.items.map((card) => {
                 const Icon = card.icon;
                 return (
-                  <Link href={card.href} key={index}>
+                  <Link href={card.href} key={card.title}>
                     <Card
                       isPressable
-                      className="h-full w-96 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-none group"
+                      className="w-full h-full border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-white/80 dark:bg-gray-800/80 group"
                     >
-                      <CardHeader className="pb-0 pt-6 px-6 flex-col items-start">
-                        <div
-                          className={`p-3 rounded-xl ${card.iconBg} mb-4 group-hover:scale-110 transition-transform duration-300`}
-                        >
-                          <Icon className={`w-6 h-6 ${card.iconColor}`} />
+                      <CardBody className="p-5">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="p-2.5 rounded-xl bg-[#f8cf2c]/20 text-[#a67c00] dark:text-[#f8cf2c] group-hover:bg-[#f8cf2c] group-hover:text-black transition-colors">
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-[#f8cf2c] group-hover:translate-x-1 transition-all" />
                         </div>
-                      </CardHeader>
-                      <CardBody className="px-6 pb-6 pt-2">
-                        <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2 flex items-center justify-between">
-                          {card.title}
-                          <ArrowRight className="w-5 h-5 text-gray-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                          {card.description}
-                        </p>
-
-                        {/* Gradient bottom accent */}
-                        <div
-                          className={`h-1 w-0 group-hover:w-full bg-gradient-to-r ${card.gradient} rounded-full mt-4 transition-all duration-500`}
-                        ></div>
+                        <h3 className="font-bold text-gray-900 dark:text-white">{card.title}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{card.description}</p>
                       </CardBody>
                     </Card>
                   </Link>
                 );
               })}
             </div>
-
-            {/* Quick Stats Section */}
-          </div>
-        </div>
-      )}
-    </RootLayout>
+          </section>
+        ))}
+      </main>
+    </div>
   );
 }

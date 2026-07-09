@@ -1,6 +1,6 @@
 "use client";
 
-import { Center } from "@mantine/core";
+import { Center } from "@/components/ui";
 import Body from "./Body";
 import { getDocById } from "../../pages/api/functions/get";
 import { usePathname } from "next/navigation";

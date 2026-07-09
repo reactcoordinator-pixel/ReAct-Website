@@ -1,7 +1,7 @@
 import React from "react";
 import { Feature } from "../../types/feature";
 import { motion } from "framer-motion";
-import { Button } from "@mantine/core";
+import { Button } from "@heroui/react";
 import Link from "next/link";
 
 const SingleFeature = ({ feature }: { feature: Feature }) => {
@@ -35,9 +35,7 @@ const SingleFeature = ({ feature }: { feature: Feature }) => {
         <p>{description}</p>
         <br />
         <Link href={href}>
-          <Button bg={"#f8cf2c"} c={"#000"}>
-            Learn More
-          </Button>
+          <Button className="bg-[#f8cf2c] text-black">Learn More</Button>
         </Link>
       </motion.div>
     </>

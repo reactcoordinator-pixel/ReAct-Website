@@ -1,6 +1,6 @@
 import SectionHeader from "@/components/Common/SectionHeader";
 import Service from "./Service";
-import { Container, Image } from "@mantine/core";
+import { Container, Image } from "@/components/ui";
 import RootLayout from "@/components/RootLayout";
 
 export default function page() {

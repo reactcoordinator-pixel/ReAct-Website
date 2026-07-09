@@ -1,19 +1,4 @@
-// components/SocialIcons.tsx
-import {
-  IconBrandFacebook,
-  IconBrandInstagram,
-  IconBrandLinkedin,
-  IconBrandTwitter,
-  IconBrandYoutube,
-  IconBrandTiktok,
-  IconBrandGithub,
-  IconBrandDiscord,
-  IconBrandTelegram,
-  IconBrandWhatsapp,
-  IconMail,
-  IconWorld,
-  IconLink,
-} from "@tabler/icons-react";
+// components/SocialIcons.tsx — icons from react-icons (Font Awesome) only.
 import {
   FaFacebook,
   FaInstagram,
@@ -30,24 +15,22 @@ import {
   FaLink,
 } from "react-icons/fa";
 
+// `Tabler` is kept as a key for backward compatibility with callers, but now
+// points at the same react-icons component as `FA` (Tabler pack removed).
 export const iconMap = {
-  facebook: { Tabler: IconBrandFacebook, FA: FaFacebook, label: "Facebook" },
-  instagram: {
-    Tabler: IconBrandInstagram,
-    FA: FaInstagram,
-    label: "Instagram",
-  },
-  linkedin: { Tabler: IconBrandLinkedin, FA: FaLinkedin, label: "LinkedIn" },
-  twitter: { Tabler: IconBrandTwitter, FA: FaTwitter, label: "Twitter/X" },
-  youtube: { Tabler: IconBrandYoutube, FA: FaYoutube, label: "YouTube" },
-  tiktok: { Tabler: IconBrandTiktok, FA: FaTiktok, label: "TikTok" },
-  github: { Tabler: IconBrandGithub, FA: FaGithub, label: "GitHub" },
-  discord: { Tabler: IconBrandDiscord, FA: FaDiscord, label: "Discord" },
-  telegram: { Tabler: IconBrandTelegram, FA: FaTelegram, label: "Telegram" },
-  whatsapp: { Tabler: IconBrandWhatsapp, FA: FaWhatsapp, label: "WhatsApp" },
-  email: { Tabler: IconMail, FA: FaEnvelope, label: "Email" },
-  website: { Tabler: IconWorld, FA: FaGlobe, label: "Website" },
-  other: { Tabler: IconLink, FA: FaLink, label: "Other" },
+  facebook: { Tabler: FaFacebook, FA: FaFacebook, label: "Facebook" },
+  instagram: { Tabler: FaInstagram, FA: FaInstagram, label: "Instagram" },
+  linkedin: { Tabler: FaLinkedin, FA: FaLinkedin, label: "LinkedIn" },
+  twitter: { Tabler: FaTwitter, FA: FaTwitter, label: "Twitter/X" },
+  youtube: { Tabler: FaYoutube, FA: FaYoutube, label: "YouTube" },
+  tiktok: { Tabler: FaTiktok, FA: FaTiktok, label: "TikTok" },
+  github: { Tabler: FaGithub, FA: FaGithub, label: "GitHub" },
+  discord: { Tabler: FaDiscord, FA: FaDiscord, label: "Discord" },
+  telegram: { Tabler: FaTelegram, FA: FaTelegram, label: "Telegram" },
+  whatsapp: { Tabler: FaWhatsapp, FA: FaWhatsapp, label: "WhatsApp" },
+  email: { Tabler: FaEnvelope, FA: FaEnvelope, label: "Email" },
+  website: { Tabler: FaGlobe, FA: FaGlobe, label: "Website" },
+  other: { Tabler: FaLink, FA: FaLink, label: "Other" },
 };
 
 export type IconType = keyof typeof iconMap;

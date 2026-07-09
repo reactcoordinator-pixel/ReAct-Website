@@ -4,7 +4,7 @@ import { updateDoc } from "../../../../api/functions/post";
 import { getDocById } from "../../../../api/functions/get";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Center, Container } from "@mantine/core";
+import { Center, Container } from "@/components/ui";
 import { Spinner } from "@heroui/react";
 import SectionHeader from "../../../../../components/Common/SectionHeader";
 import RootLayout from "@/components/RootLayout";

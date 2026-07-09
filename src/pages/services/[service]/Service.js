@@ -3,7 +3,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router"; // Import useRouter
-import { Image } from "@mantine/core";
+import { Image } from "@/components/ui";
 import SectionHeader from "@/components/Common/SectionHeader";
 import { getDocById } from "../../../pages/api/functions/get";
 import { Button, Link } from "@heroui/react";

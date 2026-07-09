@@ -1,17 +1,14 @@
 "use client";
-import { Group, Box } from "@mantine/core";
-import { Link } from "@chakra-ui/react";
-import { Flex } from "@chakra-ui/react";
-import { Image } from "@chakra-ui/react";
+import Link from "next/link";
+import Image from "next/image";
 import { CiMail } from "react-icons/ci";
 import { NavMenu } from "./NavMenu";
 import { useSocialLinks } from "@/hooks/useSocialLinks";
 import { useNavigation } from "@/hooks/useNavigation";
-import { Skeleton } from "@heroui/react"; // ← HeroUI Skeleton
+import { Skeleton } from "@heroui/react";
 import classes from "./HeaderMenu.module.css";
 import { IconType, iconMap } from "@/components/SocialIcons";
 
-// Dynamic icon component
 const DynamicIcon = ({
   iconName,
   size = 20,
@@ -28,7 +25,7 @@ export default function HeaderMenu() {
   const { data: navData, isLoading: navLoading } = useNavigation();
   const { data: socialData, isLoading: socialLoading } = useSocialLinks();
 
-  const logoUrl = navData?.logo || "/logo.png"; // fallback to default if undefined
+  const logoUrl = navData?.logo || "/logo.png";
   const visibleNavLinks = (navData?.navigationLinks || [])
     .filter((l) => l.visible)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -37,20 +34,19 @@ export default function HeaderMenu() {
   const email = socialData?.email;
 
   return (
-    <Box style={{ overflow: "hidden", position: "relative" }}>
+    <div className="relative overflow-hidden">
       {/* Top bar with social */}
-      <Flex bg="#000" alignItems="center" justifyContent="space-between">
-        <Flex alignItems="center" px={2} gap={3}>
+      <div className="flex items-center justify-between bg-black">
+        <div className="flex items-center gap-3 px-2">
           {socialLoading ? (
-            // 5 skeleton circles for social icons
             <>
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="w-6 h-6 rounded-full" />
               ))}
             </>
-          ) : headerSocial.length > 0 ? (
+          ) : (
             headerSocial.map((link) => (
-              <Link
+              <a
                 key={link.id}
                 href={link.url}
                 target="_blank"
@@ -58,73 +54,51 @@ export default function HeaderMenu() {
                 title={link.name}
               >
                 <DynamicIcon iconName={link.icon} size={22} />
-              </Link>
+              </a>
             ))
-          ) : null}
-        </Flex>
+          )}
+        </div>
 
         {/* Email section */}
         {socialLoading ? (
-          <Flex
-            alignItems="center"
-            px={2}
-            style={{
-              height: "2rem",
-              borderBottomLeftRadius: 15,
-            }}
-            bg="#f8cf2c"
-            gap={2}
-          >
+          <div className="flex items-center gap-2 px-2 h-8 bg-[#f8cf2c] rounded-bl-[15px]">
             <Skeleton className="w-6 h-6 rounded" />
             <Skeleton className="h-4 w-32 rounded-full" />
-          </Flex>
+          </div>
         ) : email?.showInHeader ? (
-          <Flex
-            alignItems="center"
-            px={2}
-            style={{
-              height: "2rem",
-              borderBottomLeftRadius: 15,
-            }}
-            bg="#f8cf2c"
-          >
-            <CiMail
-              size={23}
-              style={{ padding: "2px", fontWeight: "800" }}
-              color="#000"
-            />
-            <Link
+          <div className="flex items-center px-2 h-8 bg-[#f8cf2c] rounded-bl-[15px]">
+            <CiMail size={23} style={{ padding: "2px" }} color="#000" />
+            <a
               href={`mailto:${email.address}`}
-              style={{ color: "#000", fontSize: ".79rem" }}
-              ml="0.2rem"
+              className="ml-1 text-black text-[0.79rem]"
             >
               {email.address}
-            </Link>
-          </Flex>
+            </a>
+          </div>
         ) : null}
-      </Flex>
+      </div>
 
       <header className={classes.header}>
-        <Group justify="space-between" h="100%">
+        <div className="flex items-center justify-between h-full w-full">
           {/* Logo */}
-          <Link href="/" style={{ width: "12rem" }}>
-            <div className="relative">
-              {navLoading ? (
-                <Skeleton className="absolute bottom-[-28px] w-16 h-16 rounded-lg" />
-              ) : (
-                <Image
-                  className="absolute bottom-[-59px] md:bottom-[-66px]"
-                  src={logoUrl}
-                  width={140}
-                  height={140}
-                  alt="logo"
-                />
-              )}
-            </div>
+          <Link href="/" className="flex items-center shrink-0">
+            {navLoading ? (
+              <Skeleton className="h-16 w-16 rounded-lg" />
+            ) : (
+              <Image
+                className="h-16 w-auto object-contain"
+                src={logoUrl}
+                width={301}
+                height={292}
+                alt="ReAct logo"
+                priority
+                unoptimized
+              />
+            )}
           </Link>
 
           {/* Mobile Menu Button */}
-          <div className="relative bottom-3.5 md:hidden">
+          <div className="relative bottom-3.5 sm:hidden">
             {navLoading ? (
               <Skeleton className="w-12 h-12 rounded-full" />
             ) : (
@@ -133,9 +107,8 @@ export default function HeaderMenu() {
           </div>
 
           {/* Desktop Navigation Links */}
-          <Group h="100%" gap={0} visibleFrom="sm">
+          <div className="hidden sm:flex items-center h-full">
             {navLoading ? (
-              // 5 skeleton text placeholders for nav links
               <>
                 {[1, 2, 3, 4, 5].map((i) => (
                   <Skeleton key={i} className="h-6 w-24 mx-4 rounded-full" />
@@ -152,9 +125,9 @@ export default function HeaderMenu() {
                 </Link>
               ))
             )}
-          </Group>
-        </Group>
+          </div>
+        </div>
       </header>
-    </Box>
+    </div>
   );
 }

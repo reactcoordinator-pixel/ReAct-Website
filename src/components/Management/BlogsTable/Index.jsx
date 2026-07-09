@@ -5,7 +5,7 @@ import Table from "./Table";
 import { getBlogs } from "../../../pages/api/functions/get";
 import { Spinner } from "@heroui/react";
 import { deleteDocument } from "../../../pages/api/functions/post";
-import { Flex } from "@mantine/core";
+import { Flex } from "@/components/ui";
 
 export default function BlogsTable() {
   const [blogs, setBlogs] = useState([]);

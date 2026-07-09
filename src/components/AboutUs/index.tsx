@@ -1,7 +1,6 @@
 // components/AboutUs.tsx
 "use client";
 import React from "react";
-import { Image } from "@chakra-ui/react";
 import SectionHeader from "@/components/Common/SectionHeader";
 import { motion } from "framer-motion";
 import Cards from "@/components/Cards";

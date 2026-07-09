@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Table from "./Table";
 import { Spinner } from "@heroui/react";
 import { deleteDocument } from "../../../../pages/api/functions/post";
-import { Flex } from "@mantine/core";
+import { Flex } from "@/components/ui";
 import { getService } from "../../../../pages/api/functions/get";
 
 export function ServicesTable() {

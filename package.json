@@ -10,17 +10,10 @@
     "vercel-build": "next build"
   },
   "dependencies": {
-    "@chakra-ui/react": "^2.8.2",
     "@emailjs/browser": "^4.3.3",
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.5",
     "@hello-pangea/dnd": "^18.0.1",
     "@heroui/react": "^2.8.7",
-    "@mantine/core": "^8.3.14",
-    "@mantine/hooks": "^9.4.1",
-    "@mui/icons-material": "^5.15.15",
     "@supabase/supabase-js": "^2.110.1",
-    "@tabler/icons-react": "^3.2.0",
     "@tiptap/core": "^3.19.0",
     "@tiptap/extension-link": "^3.19.0",
     "@tiptap/extension-placeholder": "^3.19.0",

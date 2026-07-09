@@ -2,7 +2,7 @@
 
 import ServicesForm from "@/components/Management/ServicesForm";
 import { postDoc } from "../../../../api/functions/post";
-import { Container } from "@mantine/core";
+import { Container } from "@/components/ui";
 import SectionHeader from "@/components/Common/SectionHeader";
 // import Header from "components/Header";
 import RootLayout from "@/components/RootLayout";

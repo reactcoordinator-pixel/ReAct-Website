@@ -8,9 +8,16 @@ import Contribute from "@/components/Contribute";
 import BlogsListing from "@/components/BlogsListing";
 import Services from "@/components/Services";
 import { Button, Link, Skeleton } from "@heroui/react";
-import FacebookPost from "@/components/Facebook";
+import dynamic from "next/dynamic";
 import RootLayout from "@/components/RootLayout";
 import { CMSProvider, useCMS } from "@/contexts/CMSContext";
+
+// Below-the-fold social embeds are heavy — load them only on the client,
+// after the main page, so they don't bloat the initial bundle.
+const FacebookPost = dynamic(() => import("@/components/Facebook"), {
+  ssr: false,
+  loading: () => <div className="h-96" />,
+});
 
 const HomeSkeleton = () => (
   <div className="animate-pulse space-y-20 pb-20">
@@ -67,9 +74,10 @@ const HomeSkeleton = () => (
 );
 
 const HomeContent = () => {
-  const { isLoading } = useCMS();
+  const { isLoading, content } = useCMS();
 
-  if (isLoading) {
+  // Guard against a transient load failure leaving content null — never crash.
+  if (isLoading || !content) {
     return <HomeSkeleton />;
   }
 

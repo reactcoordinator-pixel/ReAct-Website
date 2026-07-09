@@ -1,4 +1,4 @@
-import { Container } from "@mantine/core";
+import { Container } from "@/components/ui";
 import SectionHeader from "@/components/Common/SectionHeader";
 import BlogsTable from "@/components/Management/BlogsTable/Index";
 import RootLayout from "@/components/RootLayout";

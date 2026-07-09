@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { Link } from "@chakra-ui/react";
+import Link from "next/link";
 import Newsletter from "@/components/Common/Newsletter";
 import { useSocialLinks } from "@/hooks/useSocialLinks";
 import { useNavigation } from "@/hooks/useNavigation";
