@@ -6,11 +6,15 @@ import SectionHeader from "@/components/Common/SectionHeader";
 import { getService } from "../../pages/api/functions/get";
 import { Spinner } from "@heroui/react";
 
-const Services = () => {
-  const [service, setService] = useState([]);
-  const [loading, setLoading] = useState(true);
+const Services = ({ initialData }: { initialData?: any[] } = {}) => {
+  const hasInitial = Array.isArray(initialData);
+  const [service, setService] = useState<any[]>(hasInitial ? initialData! : []);
+  // When the server already supplied the data, render it immediately (no
+  // client fetch → images are in the initial HTML and start loading at once).
+  const [loading, setLoading] = useState(!hasInitial);
 
   useEffect(() => {
+    if (hasInitial) return;
     const fetchData = async () => {
       try {
         const data = await getService();
@@ -22,7 +26,7 @@ const Services = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [hasInitial]);
 
   if (loading) {
     return (

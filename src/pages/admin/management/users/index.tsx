@@ -15,9 +15,14 @@ import {
   TableCell,
   Spinner,
   Divider,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from "@heroui/react";
 import RootLayout from "@/components/RootLayout";
-import { Eye, EyeOff, UserPlus, Edit, Trash2 } from "lucide-react";
+import { Eye, EyeOff, UserPlus, Edit, Trash2, KeyRound } from "lucide-react";
 
 interface Admin {
   id: string;
@@ -43,6 +48,54 @@ const UsersPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Dedicated "Change Password" modal state
+  const [pwTarget, setPwTarget] = useState<Admin | null>(null);
+  const [pwValue, setPwValue] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwShow, setPwShow] = useState(false);
+  const [pwSubmitting, setPwSubmitting] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+
+  const openPwModal = (admin: Admin) => {
+    setPwTarget(admin);
+    setPwValue("");
+    setPwConfirm("");
+    setPwError(null);
+    setPwShow(false);
+  };
+
+  const closePwModal = () => {
+    setPwTarget(null);
+    setPwSubmitting(false);
+  };
+
+  const submitPwChange = async () => {
+    if (!pwTarget) return;
+    if (pwValue.length < 6) {
+      setPwError("Password must be at least 6 characters.");
+      return;
+    }
+    if (pwValue !== pwConfirm) {
+      setPwError("Passwords do not match.");
+      return;
+    }
+    setPwSubmitting(true);
+    setPwError(null);
+    try {
+      const res = await fetch(`/api/admin/users/${pwTarget.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pwValue }),
+      });
+      if (!res.ok) throw new Error("save failed");
+      closePwModal();
+    } catch (err) {
+      console.error(err);
+      setPwError("Could not update the password. Please try again.");
+      setPwSubmitting(false);
+    }
+  };
 
   const fetchAdmins = async () => {
     try {
@@ -312,6 +365,14 @@ const UsersPage: React.FC = () => {
                         </Button>
                         <Button
                           size="sm"
+                          variant="flat"
+                          startContent={<KeyRound className="w-4 h-4" />}
+                          onClick={() => openPwModal(admin)}
+                        >
+                          Password
+                        </Button>
+                        <Button
+                          size="sm"
                           color="danger"
                           variant="flat"
                           startContent={<Trash2 className="w-4 h-4" />}
@@ -328,6 +389,67 @@ const UsersPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Change Password modal */}
+      <Modal isOpen={!!pwTarget} onClose={closePwModal} placement="center">
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <span className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-[#f8cf2c]" />
+              Change Password
+            </span>
+            {pwTarget && (
+              <span className="text-sm font-normal text-gray-500">
+                for {pwTarget.name} (@{pwTarget.username})
+              </span>
+            )}
+          </ModalHeader>
+          <ModalBody>
+            <Input
+              type={pwShow ? "text" : "password"}
+              label="New password"
+              placeholder="Enter new password"
+              value={pwValue}
+              onChange={(e) => setPwValue(e.target.value)}
+              variant="bordered"
+              endContent={
+                <button
+                  type="button"
+                  onClick={() => setPwShow(!pwShow)}
+                  className="focus:outline-none"
+                >
+                  {pwShow ? (
+                    <EyeOff className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+              }
+            />
+            <Input
+              type={pwShow ? "text" : "password"}
+              label="Confirm password"
+              placeholder="Re-enter new password"
+              value={pwConfirm}
+              onChange={(e) => setPwConfirm(e.target.value)}
+              variant="bordered"
+            />
+            {pwError && <p className="text-sm text-red-500">{pwError}</p>}
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="bordered" onClick={closePwModal}>
+              Cancel
+            </Button>
+            <Button
+              isLoading={pwSubmitting}
+              onClick={submitPwChange}
+              className="bg-[#f8cf2c] hover:bg-[#e6c028] text-white font-semibold"
+            >
+              Update Password
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </RootLayout>
   );
 };

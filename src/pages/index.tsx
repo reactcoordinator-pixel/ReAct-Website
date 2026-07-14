@@ -73,7 +73,13 @@ const HomeSkeleton = () => (
   </div>
 );
 
-const HomeContent = () => {
+const HomeContent = ({
+  initialProjects,
+  initialBlogs,
+}: {
+  initialProjects?: any[];
+  initialBlogs?: any[];
+}) => {
   const { isLoading, content } = useCMS();
 
   // Guard against a transient load failure leaving content null — never crash.
@@ -88,9 +94,13 @@ const HomeContent = () => {
       </section>
       <Introduction />
       <MissionAndVision />
-      <Services all={true} />
+      <Services all={true} initialData={initialProjects} />
       <div className="my-14">
-        <BlogsListing all={undefined} category={undefined} />
+        <BlogsListing
+          all={undefined}
+          category={undefined}
+          initialBlogs={initialBlogs}
+        />
         <div className="flex justify-center">
           <Button size="md" className="bg-[#f8cf2c] text-white">
             <Link className="text-white" href="/blogs">
@@ -119,18 +129,35 @@ const HomeContent = () => {
   );
 };
 
-export default function Home({ initialContent }: { initialContent: any }) {
+export default function Home({
+  initialContent,
+  initialProjects,
+  initialBlogs,
+}: {
+  initialContent: any;
+  initialProjects: any[];
+  initialBlogs: any[];
+}) {
   return (
     <CMSProvider editMode={false} initialContent={initialContent}>
       <RootLayout>
-        <HomeContent />
+        <HomeContent
+          initialProjects={initialProjects}
+          initialBlogs={initialBlogs}
+        />
       </RootLayout>
     </CMSProvider>
   );
 }
 
 export async function getServerSideProps() {
-  const { getCms } = await import("@/lib/data");
-  const initialContent = await getCms("homepage");
-  return { props: { initialContent } };
+  const { getCms, getProjects, getBlogs } = await import("@/lib/data");
+  // Fetch everything the above-the-fold sections need on the server, in
+  // parallel, so their images are present in the initial HTML.
+  const [initialContent, initialProjects, initialBlogs] = await Promise.all([
+    getCms("homepage"),
+    getProjects(),
+    getBlogs(),
+  ]);
+  return { props: { initialContent, initialProjects, initialBlogs } };
 }

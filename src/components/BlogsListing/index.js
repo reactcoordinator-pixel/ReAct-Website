@@ -8,11 +8,13 @@ import { useEffect, useState } from "react";
 import { getBlogs } from "../../pages/api/functions/get";
 import useSWR from "swr";
 
-const BlogsListing = ({ all, category }) => {
-  const [loading, setLoading] = useState(false);
-  const [blogs, setBlogs] = useState([]);
+const BlogsListing = ({ all, category, initialBlogs }) => {
+  const hasInitial = Array.isArray(initialBlogs);
+  const [loading, setLoading] = useState(!hasInitial);
+  const [blogs, setBlogs] = useState(hasInitial ? initialBlogs : []);
 
   useEffect(() => {
+    if (hasInitial) return; // server already provided the data
     const fetchData = async () => {
       setLoading(true);
       const fetchedBlogData = await getBlogs();
@@ -21,7 +23,7 @@ const BlogsListing = ({ all, category }) => {
     };
 
     fetchData();
-  }, []); // Fetch data on initial render only
+  }, [hasInitial]); // Fetch on the client only when not server-rendered
 
   // Filter blogs based on selected category or show all if no category is selected
   const filteredBlogData = category

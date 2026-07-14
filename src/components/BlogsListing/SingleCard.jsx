@@ -36,9 +36,11 @@ export function SingleCard({ item }) {
             shadow="sm"
             radius="lg"
             width="100%"
+            loading="lazy"
             alt={item.title}
             className="w-full object-cover h-72 transition-transform transform hover:scale-x-105"
-            src={item.imageUrl}
+            src={item.imageUrl || "/placeholder.jpg"}
+            fallbackSrc="/placeholder.jpg"
           />
         </CardBody>
         <CardFooter className="text-small justify-between mt-2 ">

@@ -44,7 +44,13 @@ export default async function handler(
     const sb = supabaseAdmin();
     const { error } = await sb.storage
       .from("media")
-      .upload(dest, buffer, { contentType, upsert: true });
+      // cache for a year at the CDN + browser; paths are unique per upload so
+      // stale cache is never an issue and repeat views are instant.
+      .upload(dest, buffer, {
+        contentType,
+        upsert: true,
+        cacheControl: "31536000",
+      });
     if (error) throw new Error(error.message);
 
     const { data } = sb.storage.from("media").getPublicUrl(dest);
