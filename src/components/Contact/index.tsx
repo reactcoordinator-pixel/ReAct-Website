@@ -219,17 +219,27 @@ const Contact = () => {
               />
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-[#f8cf2c]" />
-                <Link
-                  href={`mailto:${contact.contactInfo?.email?.address || ""}`}
-                  className="text-base text-gray-600 dark:text-gray-400 hover:text-[#f8cf2c]"
-                >
+                {isEditMode ? (
                   <EditableText
                     section="contactInfo.email"
                     field="address"
                     value={contact.contactInfo?.email?.address || ""}
                     as="span"
+                    className="text-base text-gray-600 dark:text-gray-400"
                   />
-                </Link>
+                ) : (
+                  <Link
+                    href={`mailto:${contact.contactInfo?.email?.address || ""}`}
+                    className="text-base text-gray-600 dark:text-gray-400 hover:text-[#f8cf2c]"
+                  >
+                    <EditableText
+                      section="contactInfo.email"
+                      field="address"
+                      value={contact.contactInfo?.email?.address || ""}
+                      as="span"
+                    />
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -243,17 +253,27 @@ const Contact = () => {
               />
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-[#f8cf2c]" />
-                <Link
-                  href={contact.contactInfo?.phone?.whatsappLink || ""}
-                  className="text-base text-gray-600 dark:text-gray-400 hover:text-[#f8cf2c]"
-                >
+                {isEditMode ? (
                   <EditableText
                     section="contactInfo.phone"
                     field="number"
                     value={contact.contactInfo?.phone?.number || ""}
                     as="span"
+                    className="text-base text-gray-600 dark:text-gray-400"
                   />
-                </Link>
+                ) : (
+                  <Link
+                    href={contact.contactInfo?.phone?.whatsappLink || ""}
+                    className="text-base text-gray-600 dark:text-gray-400 hover:text-[#f8cf2c]"
+                  >
+                    <EditableText
+                      section="contactInfo.phone"
+                      field="number"
+                      value={contact.contactInfo?.phone?.number || ""}
+                      as="span"
+                    />
+                  </Link>
+                )}
               </div>
             </div>
           </motion.div>

@@ -54,7 +54,7 @@ const CMSToolbar = () => {
           <Button
             color="default"
             as="a"
-            href="/contact"
+            href="/ContactUs"
             target="_blank"
             size="sm"
             startContent={<Eye className="w-4 h-4" />}
