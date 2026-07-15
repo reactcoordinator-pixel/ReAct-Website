@@ -89,21 +89,20 @@ export const CMSProvider: React.FC<{
       if (!prev) return prev;
       const newContent = JSON.parse(JSON.stringify(prev));
 
-      if (!newContent[section]) {
-        newContent[section] = {};
-      }
+      // Both `section` and `field` may be dotted paths (e.g.
+      // section="contactInfo.phone", field="number"). Walk the combined path
+      // so nested values are written in place instead of into a bogus
+      // top-level key named "contactInfo.phone".
+      const path = [...section.split("."), ...field.split(".")].filter(Boolean);
 
-      if (field.includes(".")) {
-        const parts = field.split(".");
-        let current = newContent[section];
-        for (let i = 0; i < parts.length - 1; i++) {
-          if (!current[parts[i]]) current[parts[i]] = {};
-          current = current[parts[i]];
+      let current = newContent;
+      for (let i = 0; i < path.length - 1; i++) {
+        if (current[path[i]] == null || typeof current[path[i]] !== "object") {
+          current[path[i]] = {};
         }
-        current[parts[parts.length - 1]] = value;
-      } else {
-        newContent[section][field] = value;
+        current = current[path[i]];
       }
+      current[path[path.length - 1]] = value;
 
       return newContent;
     });
