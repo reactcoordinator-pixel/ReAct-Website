@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import useSWR from "swr";
 
 export interface NavLink {
   label: string;
@@ -44,33 +44,35 @@ const fallbackData: NavigationData = {
   copyright: `© ${new Date().getFullYear()} ReAct. All rights reserved`,
 };
 
-export const useNavigation = () => {
-  const [data, setData] = useState<NavigationData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// Fetch on failure resolves to the fallback so the navbar always renders.
+const fetchNavigation = async (url: string): Promise<NavigationData> => {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const { data: fetched } = (await res.json()) as { data: NavigationData };
+    if (!fetched) return fallbackData;
+    fetched.navigationLinks = (fetched.navigationLinks || [])
+      .map((l, i) => ({ ...l, order: l.order ?? i + 1 }))
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    return fetched;
+  } catch (e) {
+    console.error(e);
+    return fallbackData;
+  }
+};
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/cms/navigation");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const { data: fetched } = (await res.json()) as { data: NavigationData };
-        if (fetched) {
-          fetched.navigationLinks = (fetched.navigationLinks || [])
-            .map((l, i) => ({ ...l, order: l.order ?? i + 1 }))
-            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-          setData(fetched);
-        } else {
-          setData(fallbackData);
-        }
-      } catch (e) {
-        console.error(e);
-        setData(fallbackData);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    load();
-  }, []);
+export const useNavigation = () => {
+  // SWR caches globally and keyed by URL, so the Header remounting on every
+  // client navigation serves the cached value instantly — no skeleton reflash.
+  const { data, isLoading, mutate } = useSWR<NavigationData>(
+    "/api/cms/navigation",
+    fetchNavigation,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+      keepPreviousData: true,
+    },
+  );
 
   const updateNavigation = async (newData: NavigationData) => {
     try {
@@ -80,7 +82,7 @@ export const useNavigation = () => {
         body: JSON.stringify({ data: newData }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setData(newData);
+      await mutate(newData, { revalidate: false });
       return true;
     } catch (e) {
       console.error(e);
@@ -88,5 +90,5 @@ export const useNavigation = () => {
     }
   };
 
-  return { data, isLoading, updateNavigation, fallbackData };
+  return { data: data ?? null, isLoading, updateNavigation, fallbackData };
 };

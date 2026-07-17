@@ -1,6 +1,6 @@
 // hooks/useSocialLinks.ts
 "use client";
-import { useState, useEffect } from "react";
+import useSWR from "swr";
 
 export interface SocialLink {
   id: string;
@@ -20,28 +20,26 @@ export interface SocialLinksData {
   };
 }
 
-export const useSocialLinks = () => {
-  const [data, setData] = useState<SocialLinksData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const fetchSocialLinks = async (url: string): Promise<SocialLinksData> => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const { data } = (await res.json()) as { data: SocialLinksData };
+  if (!data) throw new Error("No social links found");
+  return data;
+};
 
-  const fetchSocialLinks = async () => {
-    try {
-      setIsLoading(true);
-      const res = await fetch("/api/cms/socialLinks");
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { data } = (await res.json()) as { data: SocialLinksData };
-      if (data) {
-        setData(data);
-      } else {
-        setError("No social links found");
-      }
-    } catch (err) {
-      setError("Failed to load social links");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+export const useSocialLinks = () => {
+  // SWR caches globally and keyed by URL, so the Header remounting on every
+  // client navigation serves the cached value instantly — no skeleton reflash.
+  const { data, isLoading, error, mutate } = useSWR<SocialLinksData>(
+    "/api/cms/socialLinks",
+    fetchSocialLinks,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+      keepPreviousData: true,
+    },
+  );
 
   const updateSocialLinks = async (newData: SocialLinksData) => {
     try {
@@ -51,7 +49,7 @@ export const useSocialLinks = () => {
         body: JSON.stringify({ data: newData }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setData(newData);
+      await mutate(newData, { revalidate: false });
       return true;
     } catch (err) {
       console.error("Error saving:", err);
@@ -59,15 +57,11 @@ export const useSocialLinks = () => {
     }
   };
 
-  useEffect(() => {
-    fetchSocialLinks();
-  }, []);
-
   return {
-    data,
+    data: data ?? null,
     isLoading,
-    error,
-    refetch: fetchSocialLinks,
+    error: error ? "Failed to load social links" : null,
+    refetch: () => mutate(),
     updateSocialLinks,
   };
 };

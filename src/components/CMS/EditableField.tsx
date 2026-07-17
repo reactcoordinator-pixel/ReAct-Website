@@ -130,6 +130,80 @@ interface CompressionOptions {
   maxSizeMB: number;
 }
 
+// Hoisted to module scope so it stays a stable component type (a component
+// re-defined inside its parent gets a new identity every render, which makes
+// React remount the <img> and reset loading state).
+//
+// The load state is driven by a *detached* Image() probe created in the effect
+// rather than the rendered <img>'s onLoad. During SSR hydration the browser
+// often finishes downloading the <img> before React attaches its handlers, so
+// that `load` event is missed and the spinner spins forever ("sometimes it
+// shows, sometimes it doesn't"). A client-side probe is immune to that race:
+// its onload/onerror always fire, and for an already-cached image `complete`
+// is true synchronously.
+const RemoteImage: React.FC<{
+  src: string;
+  className: string;
+  alt: string;
+}> = ({ src, className, alt }) => {
+  const [status, setStatus] = useState<"loading" | "loaded" | "error">(
+    "loading",
+  );
+
+  useEffect(() => {
+    if (!src) {
+      setStatus("error");
+      return;
+    }
+
+    let cancelled = false;
+    setStatus("loading");
+
+    const probe = new window.Image();
+    const settle = (next: "loaded" | "error") => {
+      if (!cancelled) setStatus(next);
+    };
+    probe.onload = () => settle("loaded");
+    probe.onerror = () => settle("error");
+    probe.src = src;
+
+    // Cached images can be `complete` immediately without ever firing onload.
+    if (probe.complete) {
+      settle(probe.naturalWidth > 0 ? "loaded" : "error");
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [src]);
+
+  if (status === "error") {
+    return (
+      <div
+        className={`${className} bg-gray-200 flex items-center justify-center text-gray-500`}
+      >
+        <div className="text-center">
+          <ImageIcon className="w-8 h-8 mx-auto mb-2" />
+          <span className="text-xs">Failed to load</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {status === "loading" && (
+        <div
+          className={`${className} absolute inset-0 bg-gray-100 flex items-center justify-center z-10`}
+        >
+          <Spinner size="md" color="warning" />
+        </div>
+      )}
+      <img src={src} alt={alt} className={className} />
+    </>
+  );
+};
+
 export const EditableImage: React.FC<EditableImageProps> = ({
   section,
   field,
@@ -640,54 +714,6 @@ export const EditableImage: React.FC<EditableImageProps> = ({
   }
 
   // REGULAR IMAGE MODE
-  const RemoteImage = ({
-    src,
-    className,
-    alt,
-  }: {
-    src: string;
-    className: string;
-    alt: string;
-  }) => {
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
-
-    if (error) {
-      return (
-        <div
-          className={`${className} bg-gray-200 flex items-center justify-center text-gray-500`}
-        >
-          <div className="text-center">
-            <ImageIcon className="w-8 h-8 mx-auto mb-2" />
-            <span className="text-xs">Failed to load</span>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <>
-        {loading && (
-          <div
-            className={`${className} absolute inset-0 bg-gray-100 flex items-center justify-center z-10`}
-          >
-            <Spinner size="md" color="warning" />
-          </div>
-        )}
-        <img
-          src={src}
-          alt={alt}
-          className={className}
-          onLoad={() => setLoading(false)}
-          onError={() => {
-            setLoading(false);
-            setError(true);
-          }}
-        />
-      </>
-    );
-  };
-
   if (!isEditMode) {
     return (
       <div className="relative">
